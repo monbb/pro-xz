@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body onload="show_list()">
+    <h1>用户列表</h1>
+    <div id="d1"></div>
+    <button style="margin-top:20px" onclick="add()">新增用户</button>
+
+    <script>
+        // 用户列表（全部用户）
+        function show_list(){
+            // 发送异步请求
+            var xhr=new XMLHttpRequest();
+            xhr.onreadystatechange=function(){
+                if(xhr.readyState===4&&xhr.status===200){
+                    var result=xhr.responseText;
+                    // 把json字符串解析为对象
+                    var users=JSON.parse(result);
+                    // 创建表格
+                    // 表头
+                    var strHTML=`
+                    <table border="1px">
+                        <tr>
+                            <th>用户名</th>
+                            <th>密码</th>
+                            <th>邮箱</th>
+                            <th>电话</th>
+                            <th>头像</th>
+                            <th>真实姓名</th>
+                            <th>性别</th>
+                            <th>操作</th>
+                        </tr>
+                    `
+                    // 表身（for循环）
+                    for(var i=0;i<users.length;i++){
+                        // 判断性别
+                        if(users[i].gender===1){
+                            var sex='男';
+                        }else if(users[i].gender===0){
+                            sex='女';
+                        }else{
+                            sex='保密';
+                        }
+                        strHTML+=`
+                        <tr>
+                            <td>${users[i].uname}</td>
+                            <td>${users[i].upwd}</td>
+                            <td>${users[i].email}</td>
+                            <td>${users[i].phone}</td>
+                            <td>${users[i].avatar}</td>
+                            <td>${users[i].user_name}</td>
+                            <td>${sex}</td>
+                            <td>
+                                <a href="javascript:delUser(${users[i].uid})">删除</a>  
+                                <a href="update.html?uid=${users[i].uid}">修改</a>
+                            </td>
+                        </tr>
+                        `
+                    }
+                    // 表尾
+                    strHTML+=`</table>`;
+                    // 赋值回页面给d1
+                    d1.innerHTML=strHTML;
+                }
+            }
+            xhr.open('get','/pro/v1/list',true);
+            xhr.send();
+        }
+
+        // 删除用户 （把当前uid当参数传进来）
+        function delUser(uid){
+            // console.log(uid);
+            // 发送异步请求，执行删除操作
+            var xhr=new XMLHttpRequest();
+            xhr.onreadystatechange=function(){
+                if(xhr.readyState===4&&xhr.status===200){
+                    var result=xhr.responseText;
+                    if(result==1){
+                        alert('删除成功');
+                        // 重新加载用户列表（全部用户）
+                        show_list();
+                    }
+                }
+            }
+            xhr.open('delete',`/pro/v1/delUser/${uid}`,true);
+            xhr.send();
+        }
+
+        // 新增用户
+        function add(){
+            location.href="add.html";
+        }
+    </script>
+</body>
+</html>

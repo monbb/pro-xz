@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>用户登录</h1>
+    用户名：<input type="text" id="uname"><br>
+    密码：<input type="password" id="upwd"><br>
+    <button onclick="login()">提交</button>
+
+    <script>
+        function login(){
+            var $uname=uname.value;
+            var $upwd=upwd.value;
+            // 非空验证
+            if(!$uname||!$upwd){
+                alert('不能为空');
+            }else{
+                // 发送异步请求
+                var xhr=new XMLHttpRequest();
+                xhr.onreadystatechange=function(){
+                    if(xhr.readyState===4&&xhr.status===200){
+                        var result=xhr.responseText;
+                        if(result==1){
+                            alert('登录成功');
+                            location.href='list.html';
+                        }else{
+                            alert('登录失败，用户名或密码有误');
+                        }
+                    }
+                }
+                xhr.open('get',`/pro/v1/login/${$uname}&${$upwd}`,true);
+                xhr.send();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body onload="show_info()">
+    <h1>修改用户</h1>
+    用户名：<input type="text" id="uname" onfocus="clear_uname()" onblur="check_uname()">
+    <span id="span_msg"></span>
+    <br>
+    密码：<input type="password" id="upwd"><br>
+    邮箱：<input type="text" id="email"><br>
+    电话：<input type="text" id="phone"><br>
+    性别：
+    <input type="radio" name="gender" id="male"><label for="male">男</label>
+    <input type="radio" name="gender" id="female"><label for="female">女</label>
+    <input type="radio" name="gender" id="unknow"><label for="unknow">未知</label>
+    <br>
+    <button onclick="update()">修改</button>
+
+    <script>
+        // 页面加载，就显示该用户的全部信息
+        function show_info(){
+            // 获取地址栏传递过来的查询字符串
+            var $query=new URLSearchParams(location.search);
+            // 查询字符串中，获取uid的值
+            var $uid=$query.get('uid');
+            // 发送异步请求
+            var xhr=new XMLHttpRequest();
+            xhr.onreadystatechange=function(){
+                if(xhr.readyState===4&&xhr.status===200){
+                    var result=xhr.responseText;
+                    // 将json字符串解析为对象
+                    var user=JSON.parse(result);
+                    // 只有一条记录，所以使用时是user[0]
+                    uname.value=user[0].uname;
+                    upwd.value=user[0].upwd;
+                    email.value=user[0].email;
+                    phone.value=user[0].phone;
+                    // 如果性别是男，男被选中
+                    if(user[0].gender===1){
+                        male.checked=true;
+                    }else if(user[0].gender===0){
+                        female.checked=true;
+                    }else{
+                        unknow.checked=true;
+                    }
+                }
+            }
+            xhr.open('get',`/pro/v1/searchInfo/${$uid}`,true);
+            xhr.send();
+        }
+
+        // 定义全局，允许修改
+        var isUpdate=true;
+
+        // 获取焦点时，先把当前用户名清空
+        function clear_uname(){
+            uname.value='';
+            span_msg.innerHTML='请输入用户名';
+        }
+
+        // 失去焦点时，做非空验证和重名验证
+        function check_uname(){
+            // 获取当前uid和uname
+            var $query=new URLSearchParams(location.search);
+            var $uid=$query.get('uid');
+            var $uname=uname.value;
+            if(!$uname){
+                span_msg.innerHTML='用户名不能为空';
+                return;
+            }else{
+                // 发送异步请求
+                var xhr=new XMLHttpRequest();
+                xhr.onreadystatechange=function(){
+                    if(xhr.readyState===4&&xhr.status===200){
+                        var result=xhr.responseText;
+                        if(result==1){
+                            span_msg.innerHTML='该名可用';
+                            isUpdate=true;
+                        }else{
+                            // 将json字符串解析为对象
+                            var user=JSON.parse(result);
+                            // console.log(user[0].uid);
+                            if(user[0].uid==$uid){     //如果传回来的uid等于当前用户的uid，即同一个客户
+                                span_msg.innerHTML='该名可用';
+                                isUpdate=true;
+                            }else{                   //否则，即：重名
+                                span_msg.innerHTML='该名已被注册';
+                                isUpdate=false;
+                            }
+                        }
+                    }
+                }
+                xhr.open('get',`/pro/v1/checkUname/${$uname}`,true);
+                xhr.send();
+            }
+        }
+
+        // 修改
+        function update(){
+            // 获取各项的值
+            var $query=new URLSearchParams(location.search);
+            var $uid=$query.get('uid');
+            var $uname=uname.value;
+            var $upwd=upwd.value;
+            var $email=email.value;
+            var $phone=phone.value;
+            if(male.checked){
+                var $gender=1;
+            }else if(female.checked){
+                gender=0;
+            }else{
+                gender=-1;
+            }
+            // 非空验证
+            if(!$uname||!$upwd||!$email||!$phone){
+                alert('不能为空');
+                return;
+            }else if(isUpdate==false){
+                alert('用户名重复，请再重新输入');
+                return;
+            }else{
+                // 发送异步请求
+                var xhr=new XMLHttpRequest();
+                xhr.onreadystatechange=function(){
+                    if(xhr.readyState===4&&xhr.status===200){
+                        var result=xhr.responseText;
+                        if(result==1){
+                            alert('修改成功');
+                            location.href='list.html';
+                        }
+                    }
+                }
+                xhr.open('put',`/pro/v1/updateUser`,true);
+                xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+                var formdata=`uid=${$uid}&uname=${$uname}&upwd=${$upwd}&email=${$email}&phone=${$phone}&gender=${$gender}`;
+                // console.log(formdata);
+                xhr.send(formdata);
+            }
+        }
+    </script>
+</body>
+</html>
