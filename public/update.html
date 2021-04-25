@@ -16,7 +16,7 @@
     性别：
     <input type="radio" name="gender" id="male"><label for="male">男</label>
     <input type="radio" name="gender" id="female"><label for="female">女</label>
-    <input type="radio" name="gender" id="unknow"><label for="unknow">未知</label>
+    <input type="radio" name="gender" id="unknow"><label for="unknow">保密</label>
     <br>
     <button onclick="update()">修改</button>
 
@@ -111,9 +111,9 @@
             if(male.checked){
                 var $gender=1;
             }else if(female.checked){
-                gender=0;
+                $gender=0;
             }else{
-                gender=-1;
+                $gender=-1;
             }
             // 非空验证
             if(!$uname||!$upwd||!$email||!$phone){
